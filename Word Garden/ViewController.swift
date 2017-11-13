@@ -10,6 +10,10 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    @IBOutlet weak var wordsGuessedLabel: UILabel!
+    @IBOutlet weak var wordsMissedLabel: UILabel!
+    @IBOutlet weak var wordsRemainingLabel: UILabel!
+    @IBOutlet weak var totalWordsLabel: UILabel!
     @IBOutlet weak var userGuessLabel: UILabel!
     @IBOutlet weak var guessedLetterField: UITextField!
     @IBOutlet weak var guessLetterButton: UIButton!
@@ -17,25 +21,38 @@ class ViewController: UIViewController {
     @IBOutlet weak var playAgainButton: UIButton!
     @IBOutlet weak var flowerImageView: UIImageView!
     var wordsToGuess = ["SWIFT",
-                       "INTERPRETER",
-                       "MUTABLE",
-                       "PROGRAMMER",
-                       "SUPERHERO"]
+                        "DOG",
+                        "CAT"]
+//                        "INTERPRETER",
+//                        "MUTABLE",
+//                        "PROGRAMMER",
+//                        "SUPERHERO"]
     var wordToGuess = ""
     var wordToGuessIndex = 0
     var lettersGuessed = ""
     let maxNumberOfWrongGuesses = 8
     var wrongGuessesRemaining = 8
     var guessCount = 0
+    var wordsGuessedCount = 0
+    var wordsMissedCount = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        wordToGuess = wordsToGuess[0]
+        wordToGuess = wordsToGuess[wordToGuessIndex]
+        totalWordsLabel.text = "Words in Game: \(wordsToGuess.count)"
         formatUserGuessLabel()
         guessLetterButton.isEnabled = false
         playAgainButton.isHidden = true
     }
 
+    //MARK:- Formatting Methods
+    
+    func updateWordCountLabels(){
+        wordsMissedLabel.text = "Words Missed: \(wordsMissedCount)"
+        wordsGuessedLabel.text = "Words Guessed: \(wordsGuessedCount)"
+        wordsRemainingLabel.text = "Words Remaining: \(wordsToGuess.count - (wordsGuessedCount + wordsMissedCount))"
+    }
+    
     func updateUIAfterGuess(){
         guessedLetterField.resignFirstResponder()
         guessedLetterField.text = ""
@@ -56,6 +73,8 @@ class ViewController: UIViewController {
         userGuessLabel.text = revealedWord
     }
     
+    //MARK:- Game Play Methods
+    
     func guessALetter() {
         formatUserGuessLabel()
         guessCount += 1
@@ -75,18 +94,28 @@ class ViewController: UIViewController {
             guessedLetterField.isEnabled = false
             guessLetterButton.isEnabled = false
             guessCountLabel.text = "So sorry, you're all out of guesses. Try again?"
+            wordsMissedCount += 1
+            updateWordCountLabels()
         } else if !revealedWord.contains("_") {
             // You've won a game!
             playAgainButton.isHidden = false
             guessedLetterField.isEnabled = false
             guessLetterButton.isEnabled = false
             guessCountLabel.text = "You've got it! It took you \(guessCount) guesses to guess the word!"
+            wordsGuessedCount += 1
+            updateWordCountLabels()
         } else {
             // Update our guess count
             let guess = ( guessCount == 1 ? "Guess" : "Guesses")
             guessCountLabel.text = "You've Made \(guessCount) \(guess)"
         }
+        
+        if (wordsGuessedCount + wordsMissedCount) == wordsToGuess.count {
+            guessCountLabel.text = "You've tried all of the words! Restart from the beginning?"
+        }
     }
+    
+    //MARK:- @IBActions
     
     @IBAction func guessedLetterFieldChanged(_ sender: UITextField) {
         if let letterGuessed = guessedLetterField.text?.last {
@@ -113,6 +142,9 @@ class ViewController: UIViewController {
         wordToGuessIndex += 1
         if wordToGuessIndex == wordsToGuess.count {
             wordToGuessIndex = 0
+            wordsGuessedCount = 0
+            wordsMissedCount = 0
+            updateWordCountLabels()
         }
         wordToGuess = wordsToGuess[wordToGuessIndex]
         
